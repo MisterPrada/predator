@@ -24,13 +24,15 @@ export default class Predator {
 
         this.setModel()
         this.setModel2()
+        this.setAnimation()
 
         this.scene.add(this.group)
     }
 
     setModel() {
         this.predator = {}
-        this.predator.model = this.experience.resources.items.predatorModel.scene
+        this.predator.resource = this.experience.resources.items.predatorModel
+        this.predator.model = this.predator.resource.scene
         this.predator.model.position.copy(new THREE.Vector3(1, 0, 1))
         this.predator.model.scale.set(0.53, 0.53, 0.53)
         this.predator.model.rotation.y = -Math.PI / 3
@@ -60,7 +62,38 @@ export default class Predator {
         this.group.add(this.predator2.model)
     }
 
-    update() {
+    setAnimation() {
+        this.animation = {}
 
+        // Mixer
+        this.animation.mixer = new THREE.AnimationMixer(this.predator.model)
+
+        // Actions
+        this.animation.actions = {}
+
+        this.animation.actions.idle = this.animation.mixer.clipAction(this.predator.resource.animations[0])
+
+        this.animation.actions.current = this.animation.actions.idle
+        this.animation.actions.current.setLoop(THREE.LoopOnce)
+        this.animation.actions.current.clampWhenFinished = true;
+        this.animation.actions.current.play()
+
+        // Play the action
+        this.animation.play = (name) =>
+        {
+            const newAction = this.animation.actions[name]
+            const oldAction = this.animation.actions.current
+
+            newAction.reset()
+            newAction.play()
+            newAction.crossFadeFrom(oldAction, 1)
+
+            this.animation.actions.current = newAction
+        }
+    }
+
+    update() {
+        if ( this.animation )
+            this.animation.mixer.update(this.time.delta)
     }
 }

@@ -9,9 +9,9 @@ export default class Time extends EventEmitter
         // Setup
         this.start = Date.now()
         this.current = this.start
-        this.elapsed = 0
-        this.delta = 16
         this.playing = true
+        this.elapsed = 0
+        this.delta = 0.016
 
         window.requestAnimationFrame(() =>
         {
@@ -22,13 +22,13 @@ export default class Time extends EventEmitter
     tick()
     {
         const currentTime = Date.now()
-        this.delta = currentTime - this.current
+        this.delta = Math.min( (currentTime - this.current) * 0.001, 0.016)
         this.current = currentTime
-        this.elapsed += this.playing ? this.delta : 0
+        this.elapsed += (this.current - this.start) * 0.001
 
-        if(this.delta > 60)
+        if(this.delta > 0.06)
         {
-            this.delta = 60
+            this.delta = 0.06
         }
 
         this.trigger('tick')
