@@ -49,7 +49,11 @@ export default class Predator {
         this.predator2.model.traverse((child) => {
             if (child.isMesh && child.name === 'model_9') {
                 this.predator2.laser = child
-                console.log(this.predator2.laser)
+
+                this.predator2.laser.material.alphaHash = true
+                this.predator2.laser.material.map.generateMipmaps = false
+                this.predator2.laser.material.map.magFilter = THREE.NearestFilter
+                this.predator2.laser.material.map.minFilter = THREE.NearestFilter
             }
         })
 
