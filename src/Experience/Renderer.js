@@ -126,6 +126,7 @@ void main() {
         this.postProcess.visionPass = new ShaderPass({
             uniforms: {
                 uBloomTexture: { value: null },
+                uTargetTexture1: { value: null },
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -136,13 +137,15 @@ void main() {
             `,
             fragmentShader: `
                 uniform sampler2D uBloomTexture;
+                uniform sampler2D uTargetTexture1;
+                uniform sampler2D uTargetTexture2;
                 varying vec2 vUv;
                 void main() {
-                    vec4 color = texture2D(uBloomTexture, vUv);
+                    vec4 colorTexture1 = texture2D(uTargetTexture1, vUv);
                     
-                    color.rgb = mix(color.rgb, vec3(0.0, 0.0, 0.0), 0.5);
+                    colorTexture1.rgb = mix(colorTexture1.rgb, vec3(0.0, 0.0, 0.0), 0.5);
                     
-                    gl_FragColor = color;
+                    gl_FragColor = colorTexture1;
                 
                     #include <colorspace_fragment>
                }
@@ -224,9 +227,30 @@ void main() {
         this.postProcess.composer.setPixelRatio(this.sizes.pixelRatio)
 
 
-        this.postProcess.composer.addPass(this.postProcess.renderPass)
-        this.postProcess.composer.addPass(this.postProcess.unrealBloomPass)
+        //this.postProcess.composer.addPass(this.postProcess.renderPass)
+        //this.postProcess.composer.addPass(this.postProcess.unrealBloomPass)
         this.postProcess.composer.addPass(this.postProcess.visionPass)
+
+
+        this.renderTargetBuffer = new THREE.WebGLRenderTarget(
+            this.sizes.width,
+            this.sizes.height,
+            {
+                generateMipmaps: false,
+                minFilter: THREE.LinearFilter,
+                magFilter: THREE.LinearFilter,
+                format: THREE.RGBAFormat,
+                colorSpace: THREE.SRGBColorSpace,
+                samples: this.instance.getPixelRatio() === 1 ? 2 : 0,
+            }
+        )
+
+        this.postProcess.composerBuffer = new EffectComposer(this.instance, this.renderTargetBuffer)
+        this.postProcess.composerBuffer.setSize(this.sizes.width, this.sizes.height)
+        this.postProcess.composerBuffer.setPixelRatio(this.sizes.pixelRatio)
+
+        this.postProcess.composerBuffer.addPass(this.postProcess.renderPass)
+        this.postProcess.composerBuffer.addPass(this.postProcess.unrealBloomPass)
     }
 
     setVision()
@@ -302,6 +326,10 @@ void main() {
 
         if(this.usePostprocess)
         {
+            this.postProcess.composerBuffer.renderToScreen = false
+            this.postProcess.composerBuffer.render()
+
+            this.postProcess.visionPass.uniforms.uTargetTexture1.value = this.postProcess.composerBuffer.readBuffer.texture
             this.postProcess.composer.render()
         }
         else
