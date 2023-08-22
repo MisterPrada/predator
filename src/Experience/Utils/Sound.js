@@ -24,10 +24,10 @@ export default class Sound extends EventEmitter
         this.volume = 0
         this.levels = []
 
-        if(this.debug)
-        {
-            this.setSpectrum()
-        }
+        // if(this.debug)
+        // {
+        //     this.setSpectrum()
+        // }
     }
 
     isTabVisible() {

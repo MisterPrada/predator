@@ -8,7 +8,7 @@ import Renderer from './Renderer.js'
 import World from './World/World.js'
 import Resources from './Utils/Resources.js'
 import Sound from "./Utils/Sound.js";
-import Microphone from './Microphone.js'
+//import Microphone from './Microphone.js'
 
 import sources from './sources.js'
 import gsap from "gsap";

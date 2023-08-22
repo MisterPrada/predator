@@ -18,7 +18,7 @@ export default class Renderer
         this.stats = this.experience.debug.stats
         this.debug = this.experience.debug.debug
 
-        this.usePostprocess = false
+        this.usePostprocess = true
 
         if(this.debug)
         {
@@ -76,14 +76,14 @@ export default class Renderer
         // Bloom pass
         this.postProcess.unrealBloomPass = new UnrealBloomPass(
             new THREE.Vector2(this.sizes.width, this.sizes.height),
-            0.8,
-            0.315,
+            2.286,
+            0.190,
             0
         )
         this.postProcess.unrealBloomPass.enabled = true
 
         this.postProcess.unrealBloomPass.tintColor = {}
-        this.postProcess.unrealBloomPass.tintColor.value = '#7f00ff'
+        this.postProcess.unrealBloomPass.tintColor.value = '#000000'
         this.postProcess.unrealBloomPass.tintColor.instance = new THREE.Color(this.postProcess.unrealBloomPass.tintColor.value)
 
         this.postProcess.unrealBloomPass.compositeMaterial.uniforms.uTintColor = { value: this.postProcess.unrealBloomPass.tintColor.instance }
