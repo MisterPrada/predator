@@ -5,6 +5,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import gsap from "gsap";
 
 
 export default class Renderer
@@ -18,6 +19,8 @@ export default class Renderer
         this.camera = this.experience.camera
         this.stats = this.experience.debug.stats
         this.debug = this.experience.debug.debug
+        this.resources = this.experience.resources
+        this.timeline = this.experience.timeline
 
         this.usePostprocess = true
 
@@ -127,6 +130,22 @@ void main() {
             uniforms: {
                 uBloomTexture: { value: null },
                 uTargetTexture1: { value: null },
+                uTargetTexture2: { value: null },
+
+                time: { type: "f", value: 0 },
+                progress: { type: "f", value: 1.0 },
+                border: { type: "f", value: 0 },
+                intensity: { type: "f", value: 0 },
+                scaleX: { type: "f", value: 40 },
+                scaleY: { type: "f", value: 40 },
+                transition: { type: "f", value: 40 },
+                swipe: { type: "f", value: 0 },
+                width: { type: "f", value: 0 },
+                radius: { type: "f", value: 0 },
+                texture1: { type: "f", value: null },
+                texture2: { type: "f", value: null },
+                displacement: { type: "f", value: null },
+                resolution: { type: "v4", value: new THREE.Vector4() },
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -140,12 +159,56 @@ void main() {
                 uniform sampler2D uTargetTexture1;
                 uniform sampler2D uTargetTexture2;
                 varying vec2 vUv;
+                
+                
+                uniform float time;
+                uniform float progress;
+                uniform float width;
+                uniform float scaleX;
+                uniform float scaleY;
+                uniform float transition;
+                uniform float radius;
+                uniform float swipe;
+                uniform sampler2D texture1;
+                uniform sampler2D texture2;
+                uniform sampler2D displacement;
+                uniform vec4 resolution;
+        
+                varying vec4 vPosition;
+                
+                vec2 mirrored(vec2 v) {
+                    vec2 m = mod(v,2.);
+                    return mix(m,2.0 - m, step(1.0 ,m));
+                }
+                
                 void main() {
                     vec4 colorTexture1 = texture2D(uTargetTexture1, vUv);
+                    vec4 colorTexture2 = texture2D(uTargetTexture1, vUv);
                     
                     colorTexture1.rgb = mix(colorTexture1.rgb, vec3(0.0, 0.0, 0.0), 0.5);
                     
-                    gl_FragColor = colorTexture1;
+                    
+                    vec2 newUV = (vUv - vec2(0.5)) + vec2(0.5);
+                    vec4 noise = texture2D(displacement, mirrored(newUV+time*0.04));
+                    float prog = progress*0.8 -0.05 + noise.g * 0.06;
+                    float intpl = pow(abs(smoothstep(0., 1., (prog*2. - vUv.x + 0.5))), 10.);
+                    vec4 t1 = texture2D( uTargetTexture1, (newUV - 0.5) * (1.0 - intpl) + 0.5 ) ;
+                    vec4 t2 = texture2D( uTargetTexture1, (newUV - 0.5) * intpl + 0.5 );
+                    
+                    gl_FragColor = mix( t1, t2, intpl );
+                    
+                    
+                    
+                    //vec2 newUV = (vUv - vec2(0.5))*resolution.zw + vec2(0.5);
+                    //vec4 noise = texture2D(displacement, mirrored(newUV+time*0.04));
+                    //float prog = progress*0.8 -0.05 + noise.g * 0.06;
+                    //float intpl = pow(abs(smoothstep(0., 1., (prog*2. - vUv.x + 0.5))), 10.);
+                    
+                    //vec4 t1 = texture2D( texture1, (newUV - 0.5) * (1.0 - intpl) + 0.5 ) ;
+                    //vec4 t2 = texture2D( texture2, (newUV - 0.5) * intpl + 0.5 );
+                    //gl_FragColor = mix( t1, t2, intpl );
+                    
+                    
                 
                     #include <colorspace_fragment>
                }
@@ -304,6 +367,49 @@ void main() {
         this.height = this.sizes.height;
         this.duration = opts.duration || 1;
         this.easing = opts.easing || 'easeInOut'
+        this.time = 0;
+        this.current = 0;
+        this.textures = [];
+        this.paused = true;
+
+        // set settings
+        this.settings = { progress: 0.5 };
+
+        Object.keys(this.uniforms).forEach((item)=> {
+            this.settings[item] = this.uniforms[item].value;
+        })
+
+        this.postProcess.visionPass.material.uniforms.texture1.value = null;
+        this.postProcess.visionPass.material.uniforms.texture2.value = null;
+
+        this.resources.on('ready', () => {
+            this.postProcess.visionPass.material.uniforms.displacement.value = this.resources.items.displacementTexture;
+        })
+
+        document.addEventListener('click',()=>{
+            if(this.isRunning) return;
+            this.isRunning = true;
+            //let len = this.textures.length;
+            //let nextTexture =this.textures[(this.current +1)%len];
+            //this.material.uniforms.texture2.value = nextTexture;
+
+            this.timeline = gsap.timeline({});
+
+            this.timeline.to(this.postProcess.visionPass.material.uniforms.progress,
+                {
+                    duration: this.duration,
+                    ease: 'power2.out',
+                    value: 1,
+                    onComplete:()=> {
+                        console.log('FINISH');
+                        //this.current = (this.current + 1) % len;
+                        //this.material.uniforms.texture1.value = nextTexture;
+                        this.postProcess.visionPass.material.uniforms.progress.value = 0;
+                        this.isRunning = false;
+                    },
+                }
+            )
+        })
     }
 
     resize()
@@ -326,6 +432,8 @@ void main() {
 
         if(this.usePostprocess)
         {
+            this.postProcess.visionPass.material.uniforms.time.value = this.time.elapsed
+
             this.postProcess.composerBuffer.renderToScreen = false
             this.postProcess.composerBuffer.render()
 
