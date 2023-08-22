@@ -4,6 +4,7 @@ import Experience from './Experience.js'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 
 
 export default class Renderer
@@ -29,6 +30,7 @@ export default class Renderer
 
         this.setInstance()
         this.setPostProcess()
+        this.setVision()
     }
 
     setInstance()
@@ -87,7 +89,7 @@ export default class Renderer
         this.postProcess.unrealBloomPass.tintColor.instance = new THREE.Color(this.postProcess.unrealBloomPass.tintColor.value)
 
         this.postProcess.unrealBloomPass.compositeMaterial.uniforms.uTintColor = { value: this.postProcess.unrealBloomPass.tintColor.instance }
-        this.postProcess.unrealBloomPass.compositeMaterial.uniforms.uTintStrength = { value: 0.15 }
+        this.postProcess.unrealBloomPass.compositeMaterial.uniforms.uTintStrength = { value: 0.9 }
         this.postProcess.unrealBloomPass.compositeMaterial.fragmentShader = `
 varying vec2 vUv;
 uniform sampler2D blurTexture1;
@@ -119,6 +121,33 @@ void main() {
     gl_FragColor = color;
 }
         `
+
+        // Vision Pass
+        this.postProcess.visionPass = new ShaderPass({
+            uniforms: {
+                uBloomTexture: { value: null },
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D uBloomTexture;
+                varying vec2 vUv;
+                void main() {
+                    vec4 color = texture2D(uBloomTexture, vUv);
+                    
+                    color.rgb = mix(color.rgb, vec3(0.0, 0.0, 0.0), 0.5);
+                    
+                    gl_FragColor = color;
+                
+                    #include <colorspace_fragment>
+               }
+           `,
+        }, 'uBloomTexture')
 
         if(this.debug)
         {
@@ -187,15 +216,70 @@ void main() {
                 magFilter: THREE.LinearFilter,
                 format: THREE.RGBAFormat,
                 colorSpace: THREE.SRGBColorSpace,
-                samples: this.instance.getPixelRatio() === 1 ? 2 : 0
+                samples: this.instance.getPixelRatio() === 1 ? 2 : 0,
             }
         )
         this.postProcess.composer = new EffectComposer(this.instance, this.renderTarget)
         this.postProcess.composer.setSize(this.sizes.width, this.sizes.height)
         this.postProcess.composer.setPixelRatio(this.sizes.pixelRatio)
 
+
         this.postProcess.composer.addPass(this.postProcess.renderPass)
         this.postProcess.composer.addPass(this.postProcess.unrealBloomPass)
+        this.postProcess.composer.addPass(this.postProcess.visionPass)
+    }
+
+    setVision()
+    {
+        const opts = {
+            duration: 1.5,
+            easing: 'easeOut',
+            uniforms: {
+                // width: {value: 0.35, type:'f', min:0., max:1},
+            },
+            fragment: `
+		uniform float time;
+		uniform float progress;
+		uniform float width;
+		uniform float scaleX;
+		uniform float scaleY;
+		uniform float transition;
+		uniform float radius;
+		uniform float swipe;
+		uniform sampler2D texture1;
+		uniform sampler2D texture2;
+		uniform sampler2D displacement;
+		uniform vec4 resolution;
+
+		varying vec2 vUv;
+		varying vec4 vPosition;
+		vec2 mirrored(vec2 v) {
+			vec2 m = mod(v,2.);
+			return mix(m,2.0 - m, step(1.0 ,m));
+		}
+
+		void main()	{
+		  vec2 newUV = (vUv - vec2(0.5))*resolution.zw + vec2(0.5);
+		  vec4 noise = texture2D(displacement, mirrored(newUV+time*0.04));
+		  // float prog = 0.6*progress + 0.2 + noise.g * 0.06;
+		  float prog = progress*0.8 -0.05 + noise.g * 0.06;
+		  float intpl = pow(abs(smoothstep(0., 1., (prog*2. - vUv.x + 0.5))), 10.);
+		  
+		  vec4 t1 = texture2D( texture1, (newUV - 0.5) * (1.0 - intpl) + 0.5 ) ;
+		  vec4 t2 = texture2D( texture2, (newUV - 0.5) * intpl + 0.5 );
+		  gl_FragColor = mix( t1, t2, intpl );
+
+		}
+
+	`
+        }
+
+        this.fragment = opts.fragment;
+        this.uniforms = opts.uniforms;
+        this.width = this.sizes.width;
+        this.height = this.sizes.height;
+        this.duration = opts.duration || 1;
+        this.easing = opts.easing || 'easeInOut'
     }
 
     resize()
