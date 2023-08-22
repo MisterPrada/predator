@@ -133,7 +133,7 @@ void main() {
                 uTargetTexture2: { value: null },
 
                 time: { type: "f", value: 0 },
-                progress: { type: "f", value: 1.0 },
+                progress: { type: "f", value: 0.0 },
                 border: { type: "f", value: 0 },
                 intensity: { type: "f", value: 0 },
                 scaleX: { type: "f", value: 40 },
@@ -319,7 +319,7 @@ void main() {
     setVision()
     {
         const opts = {
-            duration: 1.5,
+            duration: 1,
             easing: 'easeOut',
             uniforms: {
                 // width: {value: 0.35, type:'f', min:0., max:1},
@@ -386,30 +386,34 @@ void main() {
             this.postProcess.visionPass.material.uniforms.displacement.value = this.resources.items.displacementTexture;
         })
 
-        document.addEventListener('click',()=>{
-            if(this.isRunning) return;
-            this.isRunning = true;
-            //let len = this.textures.length;
-            //let nextTexture =this.textures[(this.current +1)%len];
-            //this.material.uniforms.texture2.value = nextTexture;
+        // add event listener on press F key code
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyF') {
 
-            this.timeline = gsap.timeline({});
+                if(this.isRunning) return;
+                this.isRunning = true;
+                //let len = this.textures.length;
+                //let nextTexture =this.textures[(this.current +1)%len];
+                //this.material.uniforms.texture2.value = nextTexture;
 
-            this.timeline.to(this.postProcess.visionPass.material.uniforms.progress,
-                {
-                    duration: this.duration,
-                    ease: 'power2.out',
-                    value: 1,
-                    onComplete:()=> {
-                        console.log('FINISH');
-                        //this.current = (this.current + 1) % len;
-                        //this.material.uniforms.texture1.value = nextTexture;
-                        this.postProcess.visionPass.material.uniforms.progress.value = 0;
-                        this.isRunning = false;
-                    },
-                }
-            )
-        })
+                this.timeline = gsap.timeline({});
+
+                this.timeline.to(this.postProcess.visionPass.material.uniforms.progress,
+                    {
+                        duration: this.duration,
+                        ease: 'power2.out',
+                        value: 1,
+                        onComplete:()=> {
+                            console.log('FINISH');
+                            //this.current = (this.current + 1) % len;
+                            //this.material.uniforms.texture1.value = nextTexture;
+                            this.postProcess.visionPass.material.uniforms.progress.value = 0;
+                            this.isRunning = false;
+                        },
+                    }
+                )
+            }
+        });
     }
 
     resize()
