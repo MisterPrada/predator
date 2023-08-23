@@ -14,7 +14,19 @@ export default class Environment
 
         //this.setAmbientLight()
 
+        this.setModel()
         this.setDebug()
+    }
+
+    setModel() {
+        this.env = {}
+        this.env.resource = this.experience.resources.items.envModel
+        this.env.model = this.env.resource.scene
+        //this.env.model.position.copy(new THREE.Vector3(1, 0, 1))
+        //this.env.model.scale.set(0.53, 0.53, 0.53)
+        //this.env.model.rotation.y = -Math.PI / 3
+
+        this.scene.add(this.env.model)
     }
 
     setAmbientLight() {

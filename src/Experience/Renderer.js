@@ -284,35 +284,35 @@ void main() {
                 })
 
             debugFolder
-                .addInput(
+                .addBinding(
                     this.postProcess.unrealBloomPass,
                     'enabled',
                     {  }
                 )
 
             debugFolder
-                .addInput(
+                .addBinding(
                     this.postProcess.unrealBloomPass,
                     'strength',
                     { min: 0, max: 3, step: 0.001 }
                 )
 
             debugFolder
-                .addInput(
+                .addBinding(
                     this.postProcess.unrealBloomPass,
                     'radius',
                     { min: 0, max: 1, step: 0.001 }
                 )
 
             debugFolder
-                .addInput(
+                .addBinding(
                     this.postProcess.unrealBloomPass,
                     'threshold',
                     { min: 0, max: 1, step: 0.001 }
                 )
 
             debugFolder
-                .addInput(
+                .addBinding(
                     this.postProcess.unrealBloomPass.tintColor,
                     'value',
                     { view: 'uTintColor', label: 'color' }
@@ -323,7 +323,7 @@ void main() {
                 })
 
             debugFolder
-                .addInput(
+                .addBinding(
                     this.postProcess.unrealBloomPass.compositeMaterial.uniforms.uTintStrength,
                     'value',
                     { label: 'uTintStrength', min: 0, max: 1, step: 0.001 }

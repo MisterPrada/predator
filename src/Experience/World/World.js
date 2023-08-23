@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import Experience from '../Experience.js'
 import Environment from './Environment.js'
 
-import Text from './Text.js'
+import BlobSphere from './Blob.js'
 import Predator from "./Predator.js";
 
 export default class World
@@ -45,6 +45,7 @@ export default class World
                     //     this.text = new Text()
 
                     this.predator = new Predator()
+                    this.blob = new BlobSphere()
                     this.environment = new Environment()
 
                     // Remove preloader
@@ -77,6 +78,9 @@ export default class World
     {
         if(this.predator)
             this.predator.update()
+
+        if(this.blob)
+            this.blob.update()
 
         if(this.text)
             this.text.update()

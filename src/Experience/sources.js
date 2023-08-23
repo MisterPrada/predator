@@ -35,6 +35,11 @@ export default [
         path: 'models/predator2.glb'
     },
     {
+        name: 'envModel',
+        type: 'gltfModel',
+        path: 'models/env.glb'
+    },
+    {
         name: 'displacementTexture',
         type: 'texture',
         path: 'textures/displacement.jpg'
