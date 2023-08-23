@@ -63,56 +63,34 @@ export default class Camera
 
     update()
     {
-
         this.controls.update()
 
-        this.instance.updateMatrixWorld() // To be used in projection
+        //this.instance.updateMatrixWorld() // To be used in projection
     }
 
     animateCameraPosition() {
         this.timeline.add(
-            gsap.to(this.instance.position, {
-                duration: 15,
-                motionPath: {
-                    path: [
-                        {x: this.defaultCameraPosition.x, y: this.defaultCameraPosition.y, z: this.defaultCameraPosition.z},
-                        {x: 0, y: 9, z: 6},
-                        {x: 10, y: 0, z: -5},
-                        {x: -5, y: -0.6, z: 5},
-                        {x:-3.538882051743628, y: -0.6302885276790784, z: 6.796678438539777},
-                    ]
-                },
+            gsap.from(this.instance.position, {
+                duration: 10,
                 ease: "power1.inOut",
-                onUpdate: () => {
+                x: .66,
+                y: 1.1,
+                z: 2.56,
+                onStart: () => {
+                    setTimeout(() => {
+                        this.experience.world.sound.predatorGrowlSound.play()
+
+                        setTimeout(() => {
+                            this.experience.world.predator.animation.actions.current.play()
+                            this.experience.world.sound.bladesDrawSound.play()
+                        }, 900);
+                    }, 4000);
                 },
                 onComplete: () => {
-                    this.controls.mouseButtons = {
-                        LEFT: THREE.MOUSE.ROTATE,
-                        MIDDLE: null,
-                        RIGHT: null  // Это отключает действие для правой кнопки мыши
-                    };
-                    this.controls.enableZoom = false;
-
-                    this.controls.minPolarAngle = 0.5;  // небольшое ограничение сверху
-                    this.controls.maxPolarAngle = Math.PI - 0.8;  // небольшое ограничение снизу
+                    //console.log("Camera animation finished")
                 }
             }),
             "start"
         );
-
-
-        // this.timeline.add(
-        //     gsap.from(this.instance.position, {
-        //         duration: 13,
-        //         x: 10.0,
-        //         y: 15.0,
-        //         z: 15.0,
-        //         ease: "power1.inOut",
-        //         onComplete: () => {
-        //
-        //         }
-        //     }),
-        //     "start"
-        // )
     }
 }

@@ -213,6 +213,7 @@ body
     transform: translateX(-50%);
     z-index: 9999;
     border: 2px solid black;
+    display: none;
 }
 
 @keyframes fadeInOut {

@@ -24,7 +24,7 @@ export default class Time extends EventEmitter
         const currentTime = Date.now()
         this.delta = Math.min( (currentTime - this.current) * 0.001, 0.016)
         this.current = currentTime
-        this.elapsed += (this.current - this.start) * 0.001
+        this.elapsed = (this.current - this.start) * 0.001
 
         if(this.delta > 0.06)
         {

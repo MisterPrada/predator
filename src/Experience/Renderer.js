@@ -454,6 +454,9 @@ void main() {
                         duration: this.duration,
                         ease: 'power2.out',
                         value: 1,
+                        onStart:()=> {
+                            this.experience.world.sound.visionChangeSound.play()
+                        },
                         onComplete:()=> {
                             console.log('FINISH');
 
@@ -467,6 +470,7 @@ void main() {
                             this.isRunning = false;
 
                             this.vision = !this.vision;
+                            this.experience.world.sound.visionChangeSound.stop()
                         },
                     }
                 )

@@ -76,7 +76,8 @@ export default class Predator {
         this.animation.actions.current = this.animation.actions.idle
         this.animation.actions.current.setLoop(THREE.LoopOnce)
         this.animation.actions.current.clampWhenFinished = true;
-        this.animation.actions.current.play()
+        this.animation.actions.current.timeScale = 6.0;
+        //this.animation.actions.current.play()
 
         // Play the action
         this.animation.play = (name) =>

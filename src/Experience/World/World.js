@@ -18,14 +18,14 @@ export default class World
         this.sound = this.experience.sound
         this.debug = this.experience.debug.debug
 
-        this.resources.on('ready', () =>
-        {
-            this.html.preloader.remove();
-            this.html.playButton.remove();
-
-            this.predator = new Predator()
-            this.environment = new Environment()
-        })
+        // this.resources.on('ready', () =>
+        // {
+        //     this.html.preloader.remove();
+        //     this.html.playButton.remove();
+        //
+        //     this.predator = new Predator()
+        //     this.environment = new Environment()
+        // })
 
         // Wait for resources
         this.resources.on('ready', () =>
@@ -34,7 +34,7 @@ export default class World
             this.html.playButton.addEventListener('click', () => {
 
                 this.html.playButton.classList.replace("fade-in", "fade-out");
-                //this.sound.createSounds();
+                this.sound.createSounds();
 
                 setTimeout(() => {
                     this.experience.time.start = Date.now()
@@ -44,6 +44,7 @@ export default class World
                     // if ( this.debug )
                     //     this.text = new Text()
 
+                    this.predator = new Predator()
                     this.environment = new Environment()
 
                     // Remove preloader
@@ -63,6 +64,9 @@ export default class World
     animationPipeline() {
         if ( this.text )
             this.text.animateTextShow()
+
+        if ( this.camera )
+            this.camera.animateCameraPosition()
     }
 
     resize() {
