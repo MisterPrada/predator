@@ -207,11 +207,11 @@ body
     padding: 5px 10px;
     border-radius: 5px;
     animation: fadeInOut 2s infinite;
-    position: fixed;         /* фиксированное позиционирование */
-    bottom: 20px;            /* отступ снизу */
-    left: 50%;               /* центрирование по горизонтали */
-    transform: translateX(-50%);  /* смещение на половину своей ширины влево для центрирования */
-    z-index: 9999;           /* высокий z-index, чтобы быть поверх других элементов */
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
     border: 2px solid black;
 }
 
