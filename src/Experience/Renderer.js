@@ -5,7 +5,9 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { CopyShader } from "three/addons/shaders/CopyShader.js";
 import gsap from "gsap";
+import {AdditiveBlending} from "three";
 
 
 export default class Renderer
@@ -169,8 +171,6 @@ void main() {
                 uniform float transition;
                 uniform float radius;
                 uniform float swipe;
-                uniform sampler2D texture1;
-                uniform sampler2D texture2;
                 uniform sampler2D displacement;
                 uniform vec4 resolution;
         
@@ -182,38 +182,99 @@ void main() {
                 }
                 
                 void main() {
-                    vec4 colorTexture1 = texture2D(uTargetTexture1, vUv);
-                    vec4 colorTexture2 = texture2D(uTargetTexture1, vUv);
-                    
-                    colorTexture1.rgb = mix(colorTexture1.rgb, vec3(0.0, 0.0, 0.0), 0.5);
-                    
+                    //colorTexture1.rgb = mix(colorTexture1.rgb, vec3(0.0, 0.0, 0.0), 0.5);
                     
                     vec2 newUV = (vUv - vec2(0.5)) + vec2(0.5);
                     vec4 noise = texture2D(displacement, mirrored(newUV+time*0.04));
                     float prog = progress*0.8 -0.05 + noise.g * 0.06;
                     float intpl = pow(abs(smoothstep(0., 1., (prog*2. - vUv.x + 0.5))), 10.);
                     vec4 t1 = texture2D( uTargetTexture1, (newUV - 0.5) * (1.0 - intpl) + 0.5 ) ;
-                    vec4 t2 = texture2D( uTargetTexture1, (newUV - 0.5) * intpl + 0.5 );
+                    vec4 t2 = texture2D( uTargetTexture2, (newUV - 0.5) * intpl + 0.5 );
                     
                     gl_FragColor = mix( t1, t2, intpl );
                     
-                    
-                    
-                    //vec2 newUV = (vUv - vec2(0.5))*resolution.zw + vec2(0.5);
-                    //vec4 noise = texture2D(displacement, mirrored(newUV+time*0.04));
-                    //float prog = progress*0.8 -0.05 + noise.g * 0.06;
-                    //float intpl = pow(abs(smoothstep(0., 1., (prog*2. - vUv.x + 0.5))), 10.);
-                    
-                    //vec4 t1 = texture2D( texture1, (newUV - 0.5) * (1.0 - intpl) + 0.5 ) ;
-                    //vec4 t2 = texture2D( texture2, (newUV - 0.5) * intpl + 0.5 );
-                    //gl_FragColor = mix( t1, t2, intpl );
-                    
-                    
-                
                     #include <colorspace_fragment>
                }
            `,
         }, 'uBloomTexture')
+
+        // Color Filter Pass
+        this.postProcess.colorFilterPass = new ShaderPass({
+            uniforms: {
+                uDiffuseTexture: { value: null },
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+                }
+            `,
+            fragmentShader: `
+                varying vec2 vUv;
+                uniform sampler2D uDiffuseTexture;
+                
+                void main() {
+                    vec4 colorTexture = texture2D(uDiffuseTexture, vUv);
+                    
+                    // Predator Vision
+                    float r = colorTexture.r;
+                    float g = colorTexture.g;
+                    float b = colorTexture.b;
+                    float a = colorTexture.a;
+                    
+                    float luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                    
+                    float visionIntensity = 0.9;
+                    float visionThreshold = 0.01;
+                    
+                    if(luminance > visionThreshold)
+                    {
+                        colorTexture.r = visionIntensity;
+                        colorTexture.g = visionIntensity;
+                        colorTexture.b = visionIntensity;
+                    }
+                    
+                    
+                    float increasedBrightness = 0.1;
+    
+                    //increase brightness by ten percent (multiply by current brightness plus extra)
+                    colorTexture *= (1.0 + increasedBrightness);
+                    colorTexture += vec4(0.0, 0.0, 0.0, 0.0);
+                    
+                    if (colorTexture.r >= 0.002 && colorTexture.g >= 0.002 && colorTexture.b >= 0.002)
+                    {
+                       //colorTexture.r += 1.0;
+                       colorTexture.b -= 0.94;
+                       colorTexture.g -= 0.94;
+                    }
+                    else if ((colorTexture.r >= 0.4 && colorTexture.r < 0.6) && (colorTexture.g >= 0.4 && colorTexture.g < 0.6) && (colorTexture.b >= 0.4 && colorTexture.b < 0.6))
+                    {
+                       // colorTexture.g += 0.5;   
+                       // colorTexture.b -= 0.1;
+                       colorTexture.r += 0.3;
+                       
+                       discard;
+                    }
+                    else if ((colorTexture.r >= 0.3 && colorTexture.r < 0.4) && (colorTexture.g >= 0.3 && colorTexture.g < 0.4) && (colorTexture.b >= 0.3 && colorTexture.b < 0.4))
+                    {
+                       colorTexture.g += 0.6;
+                       discard;
+                    }
+                    else
+                    {
+                        colorTexture.b += 1.2;
+                    }
+                    
+                    
+                    gl_FragColor = colorTexture;
+                    
+                    #include <colorspace_fragment>
+               }
+           `,
+        }, 'uDiffuseTexture')
+
+
 
         if(this.debug)
         {
@@ -295,7 +356,9 @@ void main() {
         this.postProcess.composer.addPass(this.postProcess.visionPass)
 
 
-        this.renderTargetBuffer = new THREE.WebGLRenderTarget(
+        // Create a render target buffer Original
+
+        this.renderTargetOriginal = new THREE.WebGLRenderTarget(
             this.sizes.width,
             this.sizes.height,
             {
@@ -308,61 +371,49 @@ void main() {
             }
         )
 
-        this.postProcess.composerBuffer = new EffectComposer(this.instance, this.renderTargetBuffer)
-        this.postProcess.composerBuffer.setSize(this.sizes.width, this.sizes.height)
-        this.postProcess.composerBuffer.setPixelRatio(this.sizes.pixelRatio)
+        this.postProcess.composerOriginal = new EffectComposer(this.instance, this.renderTargetOriginal)
+        this.postProcess.composerOriginal.renderToScreen = false
+        this.postProcess.composerOriginal.setSize(this.sizes.width, this.sizes.height)
+        this.postProcess.composerOriginal.setPixelRatio(this.sizes.pixelRatio)
 
-        this.postProcess.composerBuffer.addPass(this.postProcess.renderPass)
-        this.postProcess.composerBuffer.addPass(this.postProcess.unrealBloomPass)
+        this.postProcess.composerOriginal.addPass(this.postProcess.renderPass)
+        this.postProcess.composerOriginal.addPass(this.postProcess.unrealBloomPass)
+
+        this.renderTargetVision = new THREE.WebGLRenderTarget(
+            this.sizes.width,
+            this.sizes.height,
+            {
+                generateMipmaps: false,
+                minFilter: THREE.LinearFilter,
+                magFilter: THREE.LinearFilter,
+                format: THREE.RGBAFormat,
+                colorSpace: THREE.SRGBColorSpace,
+                samples: this.instance.getPixelRatio() === 1 ? 2 : 0,
+            }
+        )
+
+        this.postProcess.composerVision = new EffectComposer(this.instance, this.renderTargetVision)
+        this.postProcess.composerVision.renderToScreen = false
+        this.postProcess.composerVision.setSize(this.sizes.width, this.sizes.height)
+        this.postProcess.composerVision.setPixelRatio(this.sizes.pixelRatio)
+
+        this.postProcess.composerVision.addPass(this.postProcess.renderPass)
+        this.postProcess.composerVision.addPass(this.postProcess.colorFilterPass)
+        this.postProcess.composerVision.addPass(this.postProcess.colorFilterPass)
+        this.postProcess.composerVision.addPass(new ShaderPass( CopyShader ))
+
+        // set vision texture
+        this.postProcess.visionPass.uniforms.uTargetTexture1.value = this.postProcess.composerOriginal.readBuffer.texture
+        this.postProcess.visionPass.uniforms.uTargetTexture2.value = this.postProcess.composerVision.readBuffer.texture
     }
 
     setVision()
     {
         const opts = {
-            duration: 1,
+            duration: 0.8,
             easing: 'easeOut',
-            uniforms: {
-                // width: {value: 0.35, type:'f', min:0., max:1},
-            },
-            fragment: `
-		uniform float time;
-		uniform float progress;
-		uniform float width;
-		uniform float scaleX;
-		uniform float scaleY;
-		uniform float transition;
-		uniform float radius;
-		uniform float swipe;
-		uniform sampler2D texture1;
-		uniform sampler2D texture2;
-		uniform sampler2D displacement;
-		uniform vec4 resolution;
-
-		varying vec2 vUv;
-		varying vec4 vPosition;
-		vec2 mirrored(vec2 v) {
-			vec2 m = mod(v,2.);
-			return mix(m,2.0 - m, step(1.0 ,m));
-		}
-
-		void main()	{
-		  vec2 newUV = (vUv - vec2(0.5))*resolution.zw + vec2(0.5);
-		  vec4 noise = texture2D(displacement, mirrored(newUV+time*0.04));
-		  // float prog = 0.6*progress + 0.2 + noise.g * 0.06;
-		  float prog = progress*0.8 -0.05 + noise.g * 0.06;
-		  float intpl = pow(abs(smoothstep(0., 1., (prog*2. - vUv.x + 0.5))), 10.);
-		  
-		  vec4 t1 = texture2D( texture1, (newUV - 0.5) * (1.0 - intpl) + 0.5 ) ;
-		  vec4 t2 = texture2D( texture2, (newUV - 0.5) * intpl + 0.5 );
-		  gl_FragColor = mix( t1, t2, intpl );
-
-		}
-
-	`
         }
-
-        this.fragment = opts.fragment;
-        this.uniforms = opts.uniforms;
+        this.vision = true;
         this.width = this.sizes.width;
         this.height = this.sizes.height;
         this.duration = opts.duration || 1;
@@ -375,13 +426,6 @@ void main() {
         // set settings
         this.settings = { progress: 0.5 };
 
-        Object.keys(this.uniforms).forEach((item)=> {
-            this.settings[item] = this.uniforms[item].value;
-        })
-
-        this.postProcess.visionPass.material.uniforms.texture1.value = null;
-        this.postProcess.visionPass.material.uniforms.texture2.value = null;
-
         this.resources.on('ready', () => {
             this.postProcess.visionPass.material.uniforms.displacement.value = this.resources.items.displacementTexture;
         })
@@ -392,9 +436,16 @@ void main() {
 
                 if(this.isRunning) return;
                 this.isRunning = true;
+
                 //let len = this.textures.length;
                 //let nextTexture =this.textures[(this.current +1)%len];
                 //this.material.uniforms.texture2.value = nextTexture;
+
+                if (this.vision) {
+                    this.postProcess.visionPass.uniforms.uTargetTexture2.value = this.postProcess.composerVision.readBuffer.texture
+                }else{
+                    this.postProcess.visionPass.uniforms.uTargetTexture2.value = this.postProcess.composerOriginal.readBuffer.texture
+                }
 
                 this.timeline = gsap.timeline({});
 
@@ -405,15 +456,23 @@ void main() {
                         value: 1,
                         onComplete:()=> {
                             console.log('FINISH');
-                            //this.current = (this.current + 1) % len;
-                            //this.material.uniforms.texture1.value = nextTexture;
+
+                            if (this.vision) {
+                                this.postProcess.visionPass.uniforms.uTargetTexture1.value = this.postProcess.composerVision.readBuffer.texture
+                            }else{
+                                this.postProcess.visionPass.uniforms.uTargetTexture1.value = this.postProcess.composerOriginal.readBuffer.texture
+                            }
+
                             this.postProcess.visionPass.material.uniforms.progress.value = 0;
                             this.isRunning = false;
+
+                            this.vision = !this.vision;
                         },
                     }
                 )
             }
         });
+
     }
 
     resize()
@@ -425,6 +484,12 @@ void main() {
         // Post process
         this.postProcess.composer.setSize(this.sizes.width, this.sizes.height)
         this.postProcess.composer.setPixelRatio(Math.min(this.sizes.pixelRatio, 2))
+
+        this.postProcess.composerOriginal.setSize(this.sizes.width, this.sizes.height)
+        this.postProcess.composerOriginal.setPixelRatio(Math.min(this.sizes.pixelRatio, 2))
+
+        this.postProcess.composerVision.setSize(this.sizes.width, this.sizes.height)
+        this.postProcess.composerVision.setPixelRatio(Math.min(this.sizes.pixelRatio, 2))
     }
 
     update()
@@ -438,10 +503,10 @@ void main() {
         {
             this.postProcess.visionPass.material.uniforms.time.value = this.time.elapsed
 
-            this.postProcess.composerBuffer.renderToScreen = false
-            this.postProcess.composerBuffer.render()
+            this.postProcess.composerOriginal.render()
 
-            this.postProcess.visionPass.uniforms.uTargetTexture1.value = this.postProcess.composerBuffer.readBuffer.texture
+            this.postProcess.composerVision.render()
+
             this.postProcess.composer.render()
         }
         else

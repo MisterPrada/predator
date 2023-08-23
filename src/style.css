@@ -198,3 +198,32 @@ body
     transition: opacity 1s ease-out;
 }
 /********************* End Play *********************/
+
+
+/********************* Press F start *********************/
+.pressF {
+    font-size: 0.8rem;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 5px 10px;
+    border-radius: 5px;
+    animation: fadeInOut 2s infinite;
+    position: fixed;         /* фиксированное позиционирование */
+    bottom: 20px;            /* отступ снизу */
+    left: 50%;               /* центрирование по горизонтали */
+    transform: translateX(-50%);  /* смещение на половину своей ширины влево для центрирования */
+    z-index: 9999;           /* высокий z-index, чтобы быть поверх других элементов */
+    border: 2px solid black;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+/********************* Press F end *********************/
