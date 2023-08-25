@@ -18,7 +18,7 @@ export default class Camera
         this.lerpVector = new THREE.Vector3();
 
         this.setInstance()
-        this.setControls()
+        //this.setControls()
     }
 
     setInstance()
@@ -27,8 +27,9 @@ export default class Camera
         this.defaultCameraPosition = new THREE.Vector3(-0.5, 1.5, 4);
 
         this.instance.position.copy(this.defaultCameraPosition)
+        this.instance.lookAt(new THREE.Vector3(0, 1.5, 0));
 
-        //this.lerpVector.copy(this.instance.position);
+        this.lerpVector.copy(this.instance.position);
 
         this.scene.add(this.instance)
     }
@@ -60,7 +61,23 @@ export default class Camera
 
     update()
     {
-        this.controls.update()
+        if (this.cursorEnabled === true) {
+            const lerpTarget = new THREE.Vector3();
+            const targetX = this.experience.cursor.x;
+            const targetY = 1.5 + this.experience.cursor.y;
+
+            lerpTarget.set(targetX, targetY, this.instance.position.z)
+
+            const lerpFactor = 0.8;  // set speed interpolation
+
+            this.lerpVector.lerp(new THREE.Vector3().copy(lerpTarget), lerpFactor * this.time.delta);
+
+            this.instance.position.copy(this.lerpVector);
+        }
+
+        this.instance.lookAt(new THREE.Vector3(0, 1.5, 0));
+
+        //this.controls.update()
 
         //this.instance.updateMatrixWorld() // To be used in projection
     }
@@ -84,6 +101,8 @@ export default class Camera
                     }, 4000);
                 },
                 onComplete: () => {
+                    this.cursorEnabled = true
+                    this.lerpVector.copy(this.instance.position);
                     //console.log("Camera animation finished")
                 }
             }),
