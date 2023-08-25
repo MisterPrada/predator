@@ -15,16 +15,6 @@ export default class Text {
 
         this.timeline = this.experience.timeline;
 
-        this.parameters = {
-            opacity: 0.0
-        }
-
-        //this.experience.resources.items.sunColorTexture.encoding = THREE.sRGBEncoding
-        //this.experience.resources.items.sunColorTexture.colorSpace = THREE.SRGBColorSpace
-        //this.experience.resources.items.sunColorTexture.repeat.set(1.5, 1.5)
-        //this.experience.resources.items.sunColorTexture.wrapS = THREE.RepeatWrapping
-        //this.experience.resources.items.sunColorTexture.wrapT = THREE.RepeatWrapping
-
         this.geometry = new THREE.PlaneGeometry( 5, 5, 128, 128 );
         this.material = new THREE.ShaderMaterial( {
             //wireframe: true,
@@ -33,11 +23,11 @@ export default class Text {
             depthTest: true,
             //vertexColors: true,
             //transparent: true,
-            blending: THREE.AdditiveBlending ,
+            blending: THREE.AdditiveBlending,
             uniforms:
                 {
                     uTime: { value: 0 },
-                    uOpacity: { value: 0.0 },
+                    uOpacity: { value: 1.0 },
                     uResolution: { value: new THREE.Vector2(128, 128) },
                 },
             vertexShader: textVertexShader,
@@ -45,8 +35,8 @@ export default class Text {
         } );
 
         this.text = new THREE.Mesh( this.geometry, this.material );
-        this.text.position.copy(new THREE.Vector3(0, -1.1, 0));
-        this.text.scale.copy(new THREE.Vector3(0.7, 0.7, 0.7));
+        this.text.position.copy(new THREE.Vector3(0, 2.1, -3));
+        this.text.scale.copy(new THREE.Vector3(0.5, 0.5, 0.5));
         this.scene.add(this.text);
     }
 
@@ -61,10 +51,9 @@ export default class Text {
             "start"
         )
     }
-
+w
     update() {
         //this.text.lookAt(this.camera.instance.position)
-        this.material.uniforms.uTime.value = this.time.elapsed * 0.001 * 0.8
-        this.timeline.time(this.experience.time.elapsed * 0.001);
+        this.material.uniforms.uTime.value = this.time.elapsed * 0.8
     }
 }

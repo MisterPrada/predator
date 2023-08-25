@@ -1,8 +1,7 @@
-import * as THREE from 'three'
-
 import Experience from '../Experience.js'
 import Environment from './Environment.js'
 
+import Text from './Text.js'
 import BlobSphere from './Blob.js'
 import Predator from "./Predator.js";
 
@@ -18,15 +17,6 @@ export default class World
         this.sound = this.experience.sound
         this.debug = this.experience.debug.debug
 
-        // this.resources.on('ready', () =>
-        // {
-        //     this.html.preloader.remove();
-        //     this.html.playButton.remove();
-        //
-        //     this.predator = new Predator()
-        //     this.environment = new Environment()
-        // })
-
         // Wait for resources
         this.resources.on('ready', () =>
         {
@@ -41,9 +31,7 @@ export default class World
                     this.experience.time.elapsed = 0
 
                     // Setup
-                    // if ( this.debug )
-                    //     this.text = new Text()
-
+                    this.text = new Text()
                     this.predator = new Predator()
                     this.blob = new BlobSphere()
                     this.environment = new Environment()
@@ -64,8 +52,8 @@ export default class World
     }
 
     animationPipeline() {
-        if ( this.text )
-            this.text.animateTextShow()
+        // if ( this.text )
+        //     this.text.animateTextShow()
 
         if ( this.camera )
             this.camera.animateCameraPosition()

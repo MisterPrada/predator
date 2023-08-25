@@ -2,7 +2,6 @@ import * as THREE from 'three'
 import Experience from './Experience.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import gsap from "gsap";
-import {log} from "three/nodes";
 
 export default class Camera
 {
@@ -25,12 +24,9 @@ export default class Camera
     setInstance()
     {
         this.instance = new THREE.PerspectiveCamera(25, this.sizes.width / this.sizes.height, 0.1, 300)
-        //const defaultCameraPosition = new THREE.Vector3(0.0, -100.0, 0.0);
-        //const defaultCameraPosition = new THREE.Vector3(10.0, 20.0, -200);
         this.defaultCameraPosition = new THREE.Vector3(-0.5, 1.5, 4);
 
         this.instance.position.copy(this.defaultCameraPosition)
-        //this.instance.rotation.reorder('YXZ')
 
         //this.lerpVector.copy(this.instance.position);
 

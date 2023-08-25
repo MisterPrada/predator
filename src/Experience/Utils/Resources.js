@@ -3,7 +3,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
-import { AudioLoader } from 'three/src/loaders/AudioLoader.js'
 import EventEmitter from './EventEmitter.js'
 
 export default class Resources extends EventEmitter
