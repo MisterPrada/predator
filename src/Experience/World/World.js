@@ -53,6 +53,7 @@ export default class World
                     setTimeout(() => {
                         this.html.preloader.remove();
                         this.html.playButton.remove();
+                        this.html.pressF.style.display = "block";
                     }, 2500);
 
                     // Animation timeline

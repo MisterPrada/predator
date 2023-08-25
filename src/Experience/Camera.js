@@ -46,6 +46,7 @@ export default class Camera
         this.controls.enabled = true;
         this.controls.target = new THREE.Vector3(0, 1.5, 0);
 
+
         // this.controls.mouseButtons = {
         //     LEFT: THREE.MOUSE.ROTATE,
         //     MIDDLE: null,

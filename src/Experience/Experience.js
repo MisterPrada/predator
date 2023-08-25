@@ -33,6 +33,7 @@ export default class Experience
         this.html = {}
         this.html.preloader = document.getElementById("preloader")
         this.html.playButton = document.getElementById("play-button")
+        this.html.pressF = document.querySelector(".pressF")
 
         // Options
         this.targetElement = _canvas
@@ -102,6 +103,8 @@ export default class Experience
 
     update()
     {
+        if ( this.debug.active )
+            this.debug.debug.refresh()
         this.timeline.time(this.time.elapsed);
         this.camera.update()
         this.world.update()

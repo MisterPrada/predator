@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import Experience from '../Experience.js'
 import textVertexShader from '../Shaders/Blob/vertex.glsl'
 import textFragmentShader from '../Shaders/Blob/fragment.glsl'
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import gsap from "gsap";
 
 export default class BlobSphere {
@@ -102,18 +103,28 @@ export default class BlobSphere {
         this.shapeGroup.add(this.point);
         this.shapeGroup.add(this.shape);
 
-        this.shapeGroup.position.copy(new THREE.Vector3(-0.05, 2.1, 0.8))
+        this.shapeGroup.position.copy(new THREE.Vector3(-0.11, 2.14, 0.71))
         this.shapeGroup.scale.copy(new THREE.Vector3(0.1, 0.1, 0.1))
+
+        // Add TransformControls
+        // var transformControls = new TransformControls(this.camera.instance, this.renderer.domElement);
+        // transformControls.attach(this.shapeGroup);
+        //
+        // transformControls.addEventListener('dragging-changed', (event) => {
+        //     this.camera.controls.enabled = !event.value;
+        // });
+        //
+        // this.scene.add(transformControls);
 
         this.options = {
             perlin: {
                 speed: 0.4,
-                size: 0.7,
+                size: 1.510,
                 perlins: 1.0,
                 decay: 1.20,
-                displace: 0.3,
+                displace: 0.6,
                 complex: 1.0,
-                waves: 0.6,
+                waves: 0.287,
                 eqcolor: 9.0,
                 rcolor: 0.85,
                 gcolor: 0.05,
@@ -353,6 +364,17 @@ export default class BlobSphere {
                     'points',
                     { name: "Points" }
                 )
+
+
+            debugFolder
+                .addBinding(
+                    this.shapeGroup,
+                    'position',
+                    { name: "Position Blob"}
+                )
+
+
+
         }
     }
 

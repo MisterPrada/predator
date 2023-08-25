@@ -23,6 +23,7 @@ export default class Renderer
         this.debug = this.experience.debug.debug
         this.resources = this.experience.resources
         this.timeline = this.experience.timeline
+        this.html = this.experience.html
 
         this.usePostprocess = true
 
@@ -433,7 +434,7 @@ void main() {
         // add event listener on press F key code
         document.addEventListener('keydown', (e) => {
             if (e.code === 'KeyF') {
-
+                this.html.pressF.style.display = 'none';
                 if(this.isRunning) return;
                 this.isRunning = true;
 
