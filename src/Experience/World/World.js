@@ -55,6 +55,9 @@ export default class World
         // if ( this.text )
         //     this.text.animateTextShow()
 
+        if ( this.blob )
+            this.blob.options.show()
+
         if ( this.camera )
             this.camera.animateCameraPosition()
     }

@@ -119,7 +119,7 @@ export default class BlobSphere {
         this.options = {
             perlin: {
                 speed: 0.4,
-                size: 1.510,
+                size: 10.0,
                 perlins: 1.0,
                 decay: 1.20,
                 displace: 0.6,
@@ -221,7 +221,13 @@ export default class BlobSphere {
                     bcolor: 1.5,
                     ease: 'power2.inOut'
                 });
-            }
+            },
+            show: function() {
+                gsap.to(this.perlin, 6, {
+                    size: 1.310,
+                    ease: 'power2.inOut'
+                });
+            },
         }
 
         this.experience.world.predator.group.add(this.shapeGroup);

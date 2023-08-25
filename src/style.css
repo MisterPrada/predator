@@ -11,6 +11,7 @@ html,
 body
 {
     overflow: hidden;
+    cursor: url('../images/target.png') 18 18, auto;
 }
 
 .webgl
@@ -20,6 +21,7 @@ body
     left: 0;
     outline: none;
 }
+
 
 /********************* Preloader CSS *********************/
 
